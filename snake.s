@@ -164,35 +164,25 @@ handle_frame:
   LDA #$00
   STA frame_count
 
-  LDA #$00
-  CMP direction
-  BEQ go_up
-  LDA #$01
-  CMP direction
-  BEQ go_down
-  LDA #$02
-  CMP direction
-  BEQ go_left
+set_offset:
+  LDX #$F8             ; i.e., -8
+  LDA direction
+  AND #%00000001       ; low bit determines negative or positive
+  BEQ set_axis
+  LDX #$08
 
-go_right:
-  LDA head_x
-  ADC #$08
-  STA head_x
-  JMP draw_snake
-go_up:
-  LDA head_y
-  SBC #$08
-  STA head_y
-  JMP draw_snake
-go_down:
-  LDA head_y
-  ADC #$08
-  STA head_y
-  JMP draw_snake
-go_left:
-  LDA head_x
-  SBC #$08
-  STA head_x
+set_axis:
+  LDY #$01
+  LDA direction
+  AND #%00000010       ; high bit determines which axis to change
+  BEQ apply_direction
+  LDY #$00
+
+apply_direction:
+  TXA
+  CLC
+  ADC head_x, y        ; head_x offset by 1 is head_y
+  STA head_x, y
 
 draw_snake:
   LDA head_y
