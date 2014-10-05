@@ -17,6 +17,11 @@ BANKS       1
 
   .enum $0000
 buttons_pressed DB
+head_x          DB
+head_y          DB
+direction       DB ; 0: up, 1: down, 2: left, 3: right
+frame_skip      DB
+frame_count     DB
   .ende
 
 
@@ -73,6 +78,13 @@ LoadPalettesLoop:
   ; initialize variables in ram
   LDA #$00
   STA buttons_pressed
+  STA direction
+  STA frame_count
+  LDA #$80
+  STA head_x
+  STA head_y
+  LDA #30
+  STA frame_skip
 
   LDA #%00010000   ; enable sprites
   STA $2001
@@ -115,24 +127,87 @@ handle_up:
   AND #%00001000
   CMP #$00
   BEQ handle_down
+  LDA #$00
+  STA direction
 
 handle_down:
   LDA buttons_pressed
   AND #%00000100
   CMP #$00
   BEQ handle_left
+  LDA #$01
+  STA direction
 
 handle_left:
   LDA buttons_pressed
   AND #%00000010
   CMP #$00
   BEQ handle_right
+  LDA #$02
+  STA direction
 
 handle_right:
   LDA buttons_pressed
   AND #%00000001
   CMP #$00
-  BEQ nmi_return
+  BEQ handle_frame
+  LDA #$03
+  STA direction
+
+handle_frame:
+  LDX frame_count
+  INX
+  STX frame_count
+  CPX frame_skip
+  BMI draw_snake
+
+  LDA #$00
+  STA frame_count
+
+  LDA #$00
+  CMP direction
+  BEQ go_up
+  LDA #$01
+  CMP direction
+  BEQ go_down
+  LDA #$02
+  CMP direction
+  BEQ go_left
+
+go_right:
+  LDA head_x
+  ADC #$08
+  STA head_x
+  JMP draw_snake
+go_up:
+  LDA head_y
+  SBC #$08
+  STA head_y
+  JMP draw_snake
+go_down:
+  LDA head_y
+  ADC #$08
+  STA head_y
+  JMP draw_snake
+go_left:
+  LDA head_x
+  SBC #$08
+  STA head_x
+
+draw_snake:
+  LDA head_y
+  STA $0200
+  LDA #$00
+  STA $0201
+  LDA #$00
+  STA $0202
+  LDA head_x
+  STA $0203
+
+  LDA #$00
+  STA $2003
+  LDA #$02
+  STA $4014
 
 nmi_return:
   RTI
