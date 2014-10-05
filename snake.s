@@ -72,7 +72,7 @@ LoadPalettesLoop:
 
   ; initialize variables in ram
   LDA #$00
-  STA buttons_pressed.w
+  STA buttons_pressed
 
   LDA #%00010000   ; enable sprites
   STA $2001
@@ -98,9 +98,9 @@ read_controller1_values:
 
   LDA $4016
   AND #%00000001
-  ASL buttons_pressed.w
-  ORA buttons_pressed.w
-  STA buttons_pressed.w
+  ASL buttons_pressed
+  ORA buttons_pressed
+  STA buttons_pressed
   INX
   JMP read_controller1_values
 
@@ -111,25 +111,25 @@ NMI:
   JSR read_controller1
 
 handle_up:
-  LDA buttons_pressed.w
+  LDA buttons_pressed
   AND #%00001000
   CMP #$00
   BEQ handle_down
 
 handle_down:
-  LDA buttons_pressed.w
+  LDA buttons_pressed
   AND #%00000100
   CMP #$00
   BEQ handle_left
 
 handle_left:
-  LDA buttons_pressed.w
+  LDA buttons_pressed
   AND #%00000010
   CMP #$00
   BEQ handle_right
 
 handle_right:
-  LDA buttons_pressed.w
+  LDA buttons_pressed
   AND #%00000001
   CMP #$00
   BEQ nmi_return
