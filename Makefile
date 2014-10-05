@@ -10,20 +10,20 @@ LDFLAGS =
 all: $(NAME).nes
 
 $(NAME).nes: $(NAME).rom header.bin
-	@cat header.bin $< > $@
+	cat header.bin $< > $@
 
 $(NAME).rom: $(OBJS) linkfile
-	@$(LD) $(LDFLAGS) linkfile $@
+	$(LD) $(LDFLAGS) linkfile $@
 
 snake.o: snake.chr
 
 %.o: %.s
-	@$(CC) $(CFLAGS) -o $<
+	$(CC) $(CFLAGS) -o $<
 
 run: $(NAME).nes
 	fceux $(NAME).nes
 
 clean:
-	@rm -f $(OBJS) $(NAME).rom $(NAME).nes
+	rm -f $(OBJS) $(NAME).rom $(NAME).nes
 
-.PHONY: all clean
+.PHONY: all clean run
