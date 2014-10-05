@@ -15,6 +15,8 @@ $(NAME).nes: $(NAME).rom header.bin
 $(NAME).rom: $(OBJS) linkfile
 	@$(LD) $(LDFLAGS) linkfile $@
 
+snake.o: snake.chr
+
 %.o: %.s
 	@$(CC) $(CFLAGS) -o $<
 
