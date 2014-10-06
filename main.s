@@ -18,6 +18,7 @@ BANKS       1
 .ENUM $0000
 buttons_pressed DB
 sleeping        DB
+game_state      DB ; 0: menu, 1: playing
 head_x          DB
 head_y          DB
 direction       DB ; 0: up, 1: down, 2: left, 3: right
@@ -73,6 +74,7 @@ clrmem:
   LDA #$00
   STA buttons_pressed
   STA sleeping
+  STA game_state
   STA direction
   STA frame_count
   LDA #$80
@@ -113,6 +115,26 @@ loop:
 
   JSR read_controller1
 
+  LDA game_state
+  BNE +
+  JSR start_screen_loop
+  JMP loop
++ JSR game_loop
+  JMP loop
+
+start_screen_loop:
+handle_start:
+  LDA buttons_pressed
+  AND #%00010000
+  CMP #$00
+  BEQ end_start_screen_loop
+  LDA #$01
+  STA game_state
+
+end_start_screen_loop:
+  RTS
+
+game_loop:
 handle_up:
   LDA buttons_pressed
   AND #%00001000
@@ -150,7 +172,7 @@ handle_frame:
   INX
   STX frame_count
   CPX frame_skip
-  BMI next_frame
+  BMI end_game_loop
 
   LDA #$00
   STA frame_count
@@ -175,8 +197,8 @@ apply_direction:
   ADC head_x, y        ; head_x offset by 1 is head_y
   STA head_x, y
 
-next_frame:
-  JMP loop
+end_game_loop:
+  RTS
 
 
 NMI:
@@ -185,6 +207,9 @@ NMI:
   PHA
   TYA
   PHA
+
+  LDA game_state
+  BEQ end_nmi
 
   LDA head_y
   STA $0200
@@ -200,6 +225,7 @@ NMI:
   LDA #$02
   STA $4014
 
+end_nmi:
   LDA #$00
   STA sleeping
 
