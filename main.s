@@ -17,6 +17,7 @@ BANKS       1
 
 .ENUM $0000
 buttons_pressed DB
+sleeping        DB
 head_x          DB
 head_y          DB
 direction       DB ; 0: up, 1: down, 2: left, 3: right
@@ -73,6 +74,7 @@ clrmem:
   ; initialize variables in ram
   LDA #$00
   STA buttons_pressed
+  STA sleeping
   STA direction
   STA frame_count
   LDA #$80
@@ -107,34 +109,11 @@ LoadPalettesLoop:
   STA $2000
 
 loop:
-  JMP loop
+  INC sleeping
+sleep:
+  LDA sleeping
+  BNE sleep
 
-
-read_controller1:
-  ; latch
-  LDA #$01
-  STA $4016
-  LDA #$00
-  STA $4016
-
-  ; clock
-  LDX #$00
-read_controller1_values:
-  CPX #$08
-  BPL end_read_controller1
-
-  LDA $4016
-  AND #%00000001
-  ASL buttons_pressed
-  ORA buttons_pressed
-  STA buttons_pressed
-  INX
-  JMP read_controller1_values
-
-end_read_controller1:
-  RTS
-
-NMI:
   JSR read_controller1
 
 handle_up:
@@ -174,7 +153,7 @@ handle_frame:
   INX
   STX frame_count
   CPX frame_skip
-  BMI draw_snake
+  BMI next_frame
 
   LDA #$00
   STA frame_count
@@ -199,7 +178,17 @@ apply_direction:
   ADC head_x, y        ; head_x offset by 1 is head_y
   STA head_x, y
 
-draw_snake:
+next_frame:
+  JMP loop
+
+
+NMI:
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+
   LDA head_y
   STA $0200
   LDA #$00
@@ -214,8 +203,39 @@ draw_snake:
   LDA #$02
   STA $4014
 
-nmi_return:
+  LDA #$00
+  STA sleeping
+
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
   RTI
+
+read_controller1:
+  ; latch
+  LDA #$01
+  STA $4016
+  LDA #$00
+  STA $4016
+
+  ; clock
+  LDX #$00
+read_controller1_values:
+  CPX #$08
+  BPL end_read_controller1
+
+  LDA $4016
+  AND #%00000001
+  ASL buttons_pressed
+  ORA buttons_pressed
+  STA buttons_pressed
+  INX
+  JMP read_controller1_values
+
+end_read_controller1:
+  RTS
 
 palette:
   .db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
