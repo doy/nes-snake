@@ -33,9 +33,7 @@ frame_count     DB
 ; set up cpu flags in the first frame and clear out system ram in the second
 ; frame (clearing out ram isn't at all necessary, but we can't do anything
 ; useful at this point anyway, so we may as well in order to make things more
-; predictable). clearing out system ram actually takes quite a bit longer than
-; a frame (a frame is ~2273 cycles, or ~324-1136 opcodes), but we may as well
-; start the process while we wait.
+; predictable).
 RESET:
   SEI              ; disable IRQs
   CLD              ; disable decimal mode
