@@ -46,9 +46,9 @@ RESET:
   STX $2001.w      ; disable rendering (same)
   STX $4010.w      ; disable DMC IRQs
 
-vblankwait1:       ; First wait for vblank to make sure PPU is ready
-  BIT $2002        ; bit 7 of $2002 is reset once vblank ends
-  BPL vblankwait1  ; and bit 7 is what is checked by BPL
+  ; First wait for vblank to make sure PPU is ready
+- BIT $2002        ; bit 7 of $2002 is reset once vblank ends
+  BPL -            ; and bit 7 is what is checked by BPL
 
   ; set everything in ram ($0000-$07FF) to $00, except for $0200-$02FF which
   ; is conventionally used to hold sprite attribute data. we set that range
@@ -81,9 +81,9 @@ clrmem:
   LDA #30
   STA frame_skip
 
-vblankwait2:      ; Second wait for vblank, PPU is ready after this
-  BIT $2002
-  BPL vblankwait2
+  ; Second wait for vblank, PPU is ready after this
+- BIT $2002
+  BPL -
 
   ; now that the ppu is ready, we can start initializing it
 LoadPalettes:
@@ -108,9 +108,8 @@ LoadPalettesLoop:
 
 loop:
   INC sleeping
-sleep:
-  LDA sleeping
-  BNE sleep
+- LDA sleeping
+  BNE -
 
   JSR read_controller1
 
