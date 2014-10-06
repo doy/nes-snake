@@ -1,5 +1,5 @@
 NAME = snake
-OBJS = snake.o
+OBJS = main.o
 
 CC = wla-6502
 LD = wlalink
@@ -15,10 +15,10 @@ $(NAME).nes: $(NAME).rom header.bin
 $(NAME).rom: $(OBJS) linkfile
 	$(LD) $(LDFLAGS) linkfile $@
 
-snake.o: snake.chr
-
 %.o: %.s
 	$(CC) $(CFLAGS) -o $<
+
+main.o: sprites.chr
 
 run: $(NAME).nes
 	fceux $(NAME).nes
