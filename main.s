@@ -197,6 +197,25 @@ apply_direction:
   ADC head_x, y        ; head_x offset by 1 is head_y
   STA head_x, y
 
+check_collisions
+  LDA head_x
+  CMP #$18
+  BCC collision
+  CMP #$E8
+  BCS collision
+
+  LDA head_y
+  CMP #$18
+  BCC collision
+  CMP #$E8
+  BCS collision
+
+  JMP end_game_loop
+
+collision:
+  LDA #$00
+  STA game_state
+
 end_game_loop:
   RTS
 
