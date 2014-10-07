@@ -128,8 +128,7 @@ handle_start:
   AND #%00010000
   CMP #$00
   BEQ end_start_screen_loop
-  LDA #$01
-  STA game_state
+  JSR start_game
 
 end_start_screen_loop:
   RTS
@@ -213,8 +212,7 @@ check_collisions
   JMP end_game_loop
 
 collision:
-  LDA #$00
-  STA game_state
+  JSR end_game
 
 end_game_loop:
   RTS
@@ -277,6 +275,16 @@ read_controller1_values:
   JMP read_controller1_values
 
 end_read_controller1:
+  RTS
+
+end_game:
+  LDA #$00
+  STA game_state
+  RTS
+
+start_game:
+  LDA #$01
+  STA game_state
   RTS
 
 palette:
