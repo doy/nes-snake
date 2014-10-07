@@ -1,11 +1,5 @@
-.MEMORYMAP
-DEFAULTSLOT  0
-SLOTSIZE     $4000
-SLOT 0       $C000
-SLOTSIZE     $2000
-SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
-.ENDME
-
+; memory layout {{{
+; rom {{{
 .ROMBANKMAP
 BANKSTOTAL  2
 BANKSIZE    $4000
@@ -13,7 +7,15 @@ BANKS       1
 BANKSIZE    $2000
 BANKS       1
 .ENDRO
-
+; }}}
+; ram {{{
+.MEMORYMAP
+DEFAULTSLOT  0
+SLOTSIZE     $4000
+SLOT 0       $C000
+SLOTSIZE     $2000
+SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
+.ENDME
 
 .ENUM $0000
 buttons_pressed DB
@@ -25,10 +27,13 @@ direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
 frame_count     DB
 .ENDE
-
-
+; }}}
+; }}}
+; prg {{{
   .bank 0
   .org $0000
+; main codepath {{{
+; initialization {{{
 ; the ppu takes two frames to initialize, so we have some time to do whatever
 ; initialization of our own that we want to while we wait. we choose here to
 ; set up cpu flags in the first frame and clear out system ram in the second
@@ -107,7 +112,8 @@ LoadPalettesLoop:
 
   LDA #%10000000   ; enable NMI interrupts
   STA $2000
-
+; }}}
+; main loop {{{
 loop:
   INC sleeping
 - LDA sleeping
@@ -121,8 +127,46 @@ loop:
   JMP loop
 + JSR game_loop
   JMP loop
+; }}}
+; }}}
+; nmi interrupt {{{
+NMI:
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
 
-start_screen_loop:
+  LDA game_state
+  BEQ end_nmi
+
+  LDA head_y
+  STA $0200
+  LDA #$00
+  STA $0201
+  LDA #$00
+  STA $0202
+  LDA head_x
+  STA $0203
+
+  LDA #$00
+  STA $2003
+  LDA #$02
+  STA $4014
+
+end_nmi:
+  LDA #$00
+  STA sleeping
+
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  RTI
+; }}}
+; subroutines {{{
+start_screen_loop: ; {{{
 handle_start:
   LDA buttons_pressed
   AND #%00010000
@@ -131,9 +175,8 @@ handle_start:
   JSR start_game
 
 end_start_screen_loop:
-  RTS
-
-game_loop:
+  RTS ; }}}
+game_loop: ; {{{
 handle_up:
   LDA buttons_pressed
   AND #%00001000
@@ -215,45 +258,8 @@ collision:
   JSR end_game
 
 end_game_loop:
-  RTS
-
-
-NMI:
-  PHA
-  TXA
-  PHA
-  TYA
-  PHA
-
-  LDA game_state
-  BEQ end_nmi
-
-  LDA head_y
-  STA $0200
-  LDA #$00
-  STA $0201
-  LDA #$00
-  STA $0202
-  LDA head_x
-  STA $0203
-
-  LDA #$00
-  STA $2003
-  LDA #$02
-  STA $4014
-
-end_nmi:
-  LDA #$00
-  STA sleeping
-
-  PLA
-  TAY
-  PLA
-  TAX
-  PLA
-  RTI
-
-read_controller1:
+  RTS ; }}}
+read_controller1: ; {{{
   ; latch
   LDA #$01
   STA $4016
@@ -275,30 +281,33 @@ read_controller1_values:
   JMP read_controller1_values
 
 end_read_controller1:
-  RTS
-
-end_game:
-  LDA #$00
-  STA game_state
-  RTS
-
-start_game:
+  RTS ; }}}
+start_game: ; {{{
   LDA #$01
   STA game_state
-  RTS
-
-palette:
+  RTS ; }}}
+end_game: ; {{{
+  LDA #$00
+  STA game_state
+  RTS ; }}}
+; }}}
+; data {{{
+palette: ; {{{
   .db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
   .db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
-
+; }}}
+; }}}
   .orga $FFFA    ;first of the three vectors starts here
+; interrupt vectors {{{
   .dw NMI        ;when an NMI happens (once per frame if enabled) the 
                    ;processor will jump to the label NMI:
   .dw RESET      ;when the processor first turns on or is reset, it will jump
                    ;to the label RESET:
   .dw 0          ;external interrupt IRQ is not used in this tutorial
-
-
+; }}}
+; }}}
+; chr {{{
   .bank 1 slot 1
   .org $0000
   .incbin "sprites.chr"
+; }}}
