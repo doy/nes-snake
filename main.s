@@ -265,15 +265,15 @@ apply_direction:
 
 check_collisions
   LDA head.x
-  CMP #$18
+  CMP #$40
   BCC collision
-  CMP #$E8
+  CMP #$C0
   BCS collision
 
   LDA head.y
-  CMP #$1D
+  CMP #$3D
   BCC collision
-  CMP #$DD
+  CMP #$BD
   BCS collision
 
   JMP end_game_loop
@@ -327,7 +327,7 @@ start_game: ; {{{
   STA $2006
 
   LDA #$20
-  LDY #$03
+  LDY #$07
 -- LDX #$00
 - STA $2007
   INX
@@ -343,7 +343,7 @@ start_game: ; {{{
   CPX #$20
   BNE -
 
-  LDY #$18
+  LDY #$10
 -- LDX #$00
 - LDA game_background_middle.w, x
   STA $2007
@@ -431,13 +431,13 @@ intro_screen: ; {{{
   .asc "           SNAKE                "
 ; }}}
 game_background_top: ; {{{
-  .asc "  ,--------------------------.  "
+  .asc "       ,----------------.       "
 ; }}}
 game_background_middle: ; {{{
-  .asc "  |                          |  "
+  .asc "       |                |       "
 ; }}}
 game_background_bottom: ; {{{
-  .asc "  '--------------------------:  "
+  .asc "       '----------------:       "
 ; }}}
 ; }}}
   .orga $FFFA    ;first of the three vectors starts here
