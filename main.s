@@ -268,9 +268,9 @@ check_collisions
   BCS collision
 
   LDA head_y
-  CMP #$20
+  CMP #$1D
   BCC collision
-  CMP #$E0
+  CMP #$DD
   BCS collision
 
   JMP end_game_loop
@@ -309,6 +309,7 @@ start_game: ; {{{
 
   LDA #$80
   STA head_x
+  LDA #$7D
   STA head_y
 
 - BIT $2002
