@@ -90,12 +90,6 @@ clrmem:
   BNE clrmem
 
   ; initialize variables in ram
-  LDA #$00
-  STA buttons_pressed
-  STA sleeping
-  STA game_state
-  STA direction
-  STA frame_count
   LDA #$03
   LDX #$01
   STA head, x
