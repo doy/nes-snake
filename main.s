@@ -31,7 +31,12 @@ frame_count     DB
 ; }}}
 ; other configuration {{{
 .asciitable
-; just use ascii for now
+MAP "-" = 1
+MAP "|" = 2
+MAP ":" = 3
+MAP "." = 4
+MAP "," = 5
+MAP "'" = 6
 .enda
 ; }}}
 ; prg {{{
@@ -252,9 +257,9 @@ check_collisions
   BCS collision
 
   LDA head_y
-  CMP #$18
+  CMP #$20
   BCC collision
-  CMP #$E8
+  CMP #$E0
   BCS collision
 
   JMP end_game_loop
@@ -288,6 +293,64 @@ read_controller1_values:
 end_read_controller1:
   RTS ; }}}
 start_game: ; {{{
+  LDA #$02
+  STA game_state
+
+- BIT $2002
+  BPL -
+
+  LDA #%00000000
+  STA $2001 ; disable rendering (since this will take longer than vblank)
+
+  LDA #$20
+  STA $2006
+  LDA #$00
+  STA $2006
+
+  LDA #$20
+  LDY #$03
+-- LDX #$00
+- STA $2007
+  INX
+  CPX #$20
+  BNE -
+  DEY
+  BNE --
+
+  LDX #$00
+- LDA game_background_top.w, x
+  STA $2007
+  INX
+  CPX #$20
+  BNE -
+
+  LDY #$18
+-- LDX #$00
+- LDA game_background_middle.w, x
+  STA $2007
+  INX
+  CPX #$20
+  BNE -
+  DEY
+  BNE --
+
+  LDX #$00
+- LDA game_background_bottom.w, x
+  STA $2007
+  INX
+  CPX #$20
+  BNE -
+
+  LDA #$20
+  LDX #$00
+- STA $2007
+  INX
+  CPX #$20
+  BNE -
+
+  LDA #%00011000
+  STA $2001 ; reenable rendering
+
   LDA #$01
   STA game_state
   RTS ; }}}
@@ -347,6 +410,15 @@ palette: ; {{{
 ; }}}
 intro_screen: ; {{{
   .asc "           SNAKE                "
+; }}}
+game_background_top: ; {{{
+  .asc "  ,--------------------------.  "
+; }}}
+game_background_middle: ; {{{
+  .asc "  |                          |  "
+; }}}
+game_background_bottom: ; {{{
+  .asc "  '--------------------------:  "
 ; }}}
 ; }}}
   .orga $FFFA    ;first of the three vectors starts here
