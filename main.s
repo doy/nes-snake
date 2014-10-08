@@ -307,6 +307,10 @@ start_game: ; {{{
   LDA #$02
   STA game_state
 
+  LDA #$80
+  STA head_x
+  STA head_y
+
 - BIT $2002
   BPL -
 
