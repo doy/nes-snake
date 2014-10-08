@@ -1,3 +1,17 @@
+; configuration {{{
+.asciitable
+MAP "-" = 1
+MAP "|" = 2
+MAP ":" = 3
+MAP "." = 4
+MAP "," = 5
+MAP "'" = 6
+.enda
+.struct point
+x db
+y db
+.endst
+; }}}
 ; memory layout {{{
 ; rom {{{
 .ROMBANKMAP
@@ -21,23 +35,12 @@ SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
 buttons_pressed DB
 sleeping        DB
 game_state      DB ; 0: menu, 1: playing, 2: redrawing
-head_x          DB
-head_y          DB
+head            instanceof point
 direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
 frame_count     DB
 .ENDE
 ; }}}
-; }}}
-; other configuration {{{
-.asciitable
-MAP "-" = 1
-MAP "|" = 2
-MAP ":" = 3
-MAP "." = 4
-MAP "," = 5
-MAP "'" = 6
-.enda
 ; }}}
 ; prg {{{
   .bank 0
@@ -93,8 +96,8 @@ clrmem:
   STA direction
   STA frame_count
   LDA #$80
-  STA head_x
-  STA head_y
+  STA head.x
+  STA head.y
   LDA #30
   STA frame_skip
 
@@ -154,13 +157,13 @@ NMI:
   BEQ end_nmi
 
 draw_head:
-  LDA head_y
+  LDA head.y
   STA $0200
   LDA #$00
   STA $0201
   LDA #$00
   STA $0202
-  LDA head_x
+  LDA head.x
   STA $0203
   JMP do_dmi
 
@@ -257,17 +260,17 @@ set_axis:
 apply_direction:
   TXA
   CLC
-  ADC head_x, y        ; head_x offset by 1 is head_y
-  STA head_x, y
+  ADC head.x, y        ; head.x offset by 1 is head.y
+  STA head.x, y
 
 check_collisions
-  LDA head_x
+  LDA head.x
   CMP #$18
   BCC collision
   CMP #$E8
   BCS collision
 
-  LDA head_y
+  LDA head.y
   CMP #$1D
   BCC collision
   CMP #$DD
@@ -308,9 +311,9 @@ start_game: ; {{{
   STA game_state
 
   LDA #$80
-  STA head_x
+  STA head.x
   LDA #$7D
-  STA head_y
+  STA head.y
 
 - BIT $2002
   BPL -
