@@ -35,7 +35,8 @@ SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
 buttons_pressed DB
 sleeping        DB
 game_state      DB ; 0: menu, 1: playing, 2: redrawing
-head            instanceof point
+head            DW
+length          DB
 direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
 frame_count     DB
@@ -95,9 +96,9 @@ clrmem:
   STA game_state
   STA direction
   STA frame_count
-  LDA #$80
-  STA head.x
-  STA head.y
+  LDA #$03
+  LDX #$01
+  STA head, x
   LDA #30
   STA frame_skip
 
@@ -157,13 +158,15 @@ NMI:
   BEQ end_nmi
 
 draw_head:
-  LDA head.y
+  LDY #$01
+  LDA (head), y
   STA $0200
   LDA #$00
   STA $0201
   LDA #$00
   STA $0202
-  LDA head.x
+  LDY #$00
+  LDA (head), y
   STA $0203
   JMP do_dmi
 
@@ -260,17 +263,19 @@ set_axis:
 apply_direction:
   TXA
   CLC
-  ADC head.x, y        ; head.x offset by 1 is head.y
-  STA head.x, y
+  ADC (head), y        ; head.x offset by 1 is head.y
+  STA (head), y
 
 check_collisions
-  LDA head.x
+  LDY #$00
+  LDA (head), y
   CMP #$40
   BCC collision
   CMP #$C0
   BCS collision
 
-  LDA head.y
+  LDY #$01
+  LDA (head), y
   CMP #$3D
   BCC collision
   CMP #$BD
@@ -311,9 +316,11 @@ start_game: ; {{{
   STA game_state
 
   LDA #$80
-  STA head.x
+  LDY #$00
+  STA (head), y
   LDA #$7D
-  STA head.y
+  LDY #$01
+  STA (head), y
 
 - BIT $2002
   BPL -
