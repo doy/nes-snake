@@ -20,7 +20,7 @@ SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
 .ENUM $0000
 buttons_pressed DB
 sleeping        DB
-game_state      DB ; 0: menu, 1: playing
+game_state      DB ; 0: menu, 1: playing, 2: redrawing
 head_x          DB
 head_y          DB
 direction       DB ; 0: up, 1: down, 2: left, 3: right
@@ -28,6 +28,11 @@ frame_skip      DB
 frame_count     DB
 .ENDE
 ; }}}
+; }}}
+; other configuration {{{
+.asciitable
+; just use ascii for now
+.enda
 ; }}}
 ; prg {{{
   .bank 0
@@ -107,11 +112,10 @@ LoadPalettesLoop:
   CPX #$20
   BNE LoadPalettesLoop  ;if x = $20, 32 bytes copied, all done
 
-  LDA #%00010000   ; enable sprites
-  STA $2001
-
   LDA #%10000000   ; enable NMI interrupts
   STA $2000
+
+  JSR end_game
 ; }}}
 ; main loop {{{
 loop:
@@ -138,7 +142,8 @@ NMI:
   PHA
 
   LDA game_state
-  BEQ end_nmi
+  CMP #$01
+  BNE end_nmi
 
   LDA head_y
   STA $0200
@@ -287,6 +292,50 @@ start_game: ; {{{
   STA game_state
   RTS ; }}}
 end_game: ; {{{
+  LDA #$02
+  STA game_state
+
+- BIT $2002
+  BPL -
+
+  LDA #%00000000
+  STA $2001 ; disable rendering (since this will take longer than vblank)
+
+  LDA #$20
+  STA $2006
+  LDA #$00
+  STA $2006
+
+  LDA #$20
+  LDX #$0F
+-- LDY #$00
+- STA $2007
+  INY
+  CPY #$20
+  BNE -
+  DEX
+  BNE --
+
+  LDY #$00
+- LDA intro_screen, y
+  STA $2007
+  INY
+  CPY #$20
+  BNE -
+
+  LDA #$20
+  LDX #$0E
+-- LDY #$00
+- STA $2007
+  INY
+  CPY #$20
+  BNE -
+  DEX
+  BNE --
+
+  LDA #%00011000
+  STA $2001 ; reenable rendering
+
   LDA #$00
   STA game_state
   RTS ; }}}
@@ -295,6 +344,9 @@ end_game: ; {{{
 palette: ; {{{
   .db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
   .db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
+; }}}
+intro_screen: ; {{{
+  .asc "           SNAKE                "
 ; }}}
 ; }}}
   .orga $FFFA    ;first of the three vectors starts here
