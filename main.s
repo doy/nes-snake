@@ -147,9 +147,13 @@ NMI:
   PHA
 
   LDA game_state
+  BEQ reset_sprites
   CMP #$01
-  BNE end_nmi
+  BEQ draw_head
+  CMP #$02
+  BEQ end_nmi
 
+draw_head:
   LDA head_y
   STA $0200
   LDA #$00
@@ -158,7 +162,14 @@ NMI:
   STA $0202
   LDA head_x
   STA $0203
+  JMP do_dmi
 
+reset_sprites:
+  LDA #$FE
+  STA $0200
+  STA $0203
+
+do_dmi:
   LDA #$00
   STA $2003
   LDA #$02
