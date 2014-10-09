@@ -43,6 +43,8 @@ frame_count     DB
 rand_state      DB
 rand_out        DB
 apple           INSTANCEOF point
+vram_addr_low   DB
+vram_addr_high  DB
 .ENDE
 ; }}}
 ; }}}
@@ -148,23 +150,64 @@ NMI:
   PHA
 
   LDA game_state
-  BEQ reset_sprites
+  BEQ reset_sprites_jmp
   CMP #$01
   BEQ draw_game
-  CMP #$02
-  BEQ end_nmi
+  JMP end_nmi
+reset_sprites_jmp:
+  JMP reset_sprites
 
 draw_game:
+  LDA #$20
+  STA vram_addr_high
+  LDA #$E0
+  STA vram_addr_low
+
   LDY #$01
   LDA (head), y
-  STA $0200
-  LDA #$00
-  STA $0201
-  LDA #$00
-  STA $0202
+  SEC
+  SBC #$35
+  LSR
+  LSR
+  LSR
+  TAX
+- CLC
+  LDA vram_addr_low
+  ADC #$20
+  STA vram_addr_low
+  LDA vram_addr_high
+  ADC #$00
+  STA vram_addr_high
+  DEX
+  BNE -
+
   LDY #$00
   LDA (head), y
-  STA $0203
+  SEC
+  SBC #$40
+  LSR
+  LSR
+  LSR
+  CLC
+  ADC #$08
+  ADC vram_addr_low
+  STA vram_addr_low
+  LDA vram_addr_high
+  ADC #$00
+  STA vram_addr_high
+
+  LDA vram_addr_high
+  STA $2006
+  LDA vram_addr_low
+  STA $2006
+
+  LDA #$00
+  STA $2007
+
+  LDA #$20
+  STA $2006
+  LDA #$00
+  STA $2006
 
   LDA apple.y
   STA $0204
