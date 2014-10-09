@@ -166,6 +166,10 @@ draw_game:
   SBC length
   SBC length
   STA head
+  LDX #$01
+  LDA head, x
+  SBC #$00
+  STA head, x
   LDX #$20
   JSR draw_sprite_at_head
   CLC
@@ -173,6 +177,10 @@ draw_game:
   ADC length
   ADC length
   STA head
+  LDX #$01
+  LDA head, x
+  ADC #$00
+  STA head, x
 
   LDA #$20
   STA $2006
