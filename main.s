@@ -202,7 +202,8 @@ end_nmi:
 ; subroutines {{{
 start_screen_loop: ; {{{
   LDX rand_state
-  INX
+- INX
+  BEQ - ; lfsr prngs have 0 as a fixed point
   STX rand_state
 
 handle_start:
