@@ -187,14 +187,14 @@ draw_game:
   STA $0202
   LDA apple.x
   STA $0203
-  JMP do_dmi
+  JMP do_dma
 
 reset_sprites:
   LDA #$FE
   STA $0200
   STA $0203
 
-do_dmi:
+do_dma:
   LDA #$00
   STA $2003
   LDA #$02
