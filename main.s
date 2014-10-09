@@ -41,6 +41,7 @@ direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
 frame_count     DB
 rand_state      DB
+apple           INSTANCEOF point
 .ENDE
 ; }}}
 ; }}}
@@ -148,11 +149,11 @@ NMI:
   LDA game_state
   BEQ reset_sprites
   CMP #$01
-  BEQ draw_head
+  BEQ draw_game
   CMP #$02
   BEQ end_nmi
 
-draw_head:
+draw_game:
   LDY #$01
   LDA (head), y
   STA $0200
@@ -163,12 +164,23 @@ draw_head:
   LDY #$00
   LDA (head), y
   STA $0203
+
+  LDA apple.y
+  STA $0204
+  LDA #$07
+  STA $0205
+  LDA #$00
+  STA $0206
+  LDA apple.x
+  STA $0207
   JMP do_dmi
 
 reset_sprites:
   LDA #$FE
   STA $0200
   STA $0203
+  STA $0204
+  STA $0207
 
 do_dmi:
   LDA #$00
@@ -320,6 +332,19 @@ start_game: ; {{{
   LDA #$7D
   LDY #$01
   STA (head), y
+
+  JSR rand
+  LDA rand_state
+  AND #%01111000
+  CLC
+  ADC #$40
+  STA apple.x
+  JSR rand
+  LDA rand_state
+  AND #%01111000
+  CLC
+  ADC #$3D
+  STA apple.y
 
 - BIT $2002
   BPL -
