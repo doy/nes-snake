@@ -99,7 +99,7 @@ clrmem:
   LDA #$03
   LDX #$01
   STA head, x
-  LDA #30
+  LDA #35
   STA frame_skip
 
   ; Second wait for vblank, PPU is ready after this
@@ -349,7 +349,12 @@ eat_apple:
   TXA
   BEQ collision ; for now - this is the win condition
   STX length
-  JSR new_apple
+  AND #$07
+  BNE +
+  LDX frame_skip
+  DEX
+  STX frame_skip
++ JSR new_apple
 
 end_game_loop:
   RTS ; }}}
