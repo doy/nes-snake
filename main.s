@@ -275,6 +275,17 @@ apply_direction:
   TXA
   CLC
   ADC (head), y        ; head.x offset by 1 is head.y
+  INC head
+  INC head
+  STA (head), y
+  DEC head
+  DEC head
+  TYA
+  EOR #$01
+  TAY
+  LDA (head), y
+  INC head
+  INC head
   STA (head), y
 
 check_collisions
