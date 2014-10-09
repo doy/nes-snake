@@ -291,22 +291,42 @@ apply_direction:
 check_collisions
   LDY #$00
   LDA (head), y
-  CMP #$40
-  BCC collision
-  CMP #$C0
-  BCS collision
-
+  TAX
   LDY #$01
   LDA (head), y
-  CMP #$3D
+  TAY
+
+  CPX #$40
   BCC collision
-  CMP #$BD
+  CPX #$C0
   BCS collision
+
+  CPY #$3D
+  BCC collision
+  CPY #$BD
+  BCS collision
+
+  CPX apple.x
+  BEQ maybe_eat_apple
 
   JMP end_game_loop
 
 collision:
   JSR end_game
+
+  JMP end_game_loop
+
+maybe_eat_apple:
+  CPY apple.y
+  BEQ eat_apple
+
+  JMP end_game_loop
+
+eat_apple:
+  LDX length
+  INX
+  STX length
+  JSR new_apple
 
 end_game_loop:
   RTS ; }}}
@@ -344,18 +364,7 @@ start_game: ; {{{
   LDY #$01
   STA (head), y
 
-  JSR rand
-  LDA rand_state
-  AND #%01111000
-  CLC
-  ADC #$40
-  STA apple.x
-  JSR rand
-  LDA rand_state
-  AND #%01111000
-  CLC
-  ADC #$3D
-  STA apple.y
+  JSR new_apple
 
 - BIT $2002
   BPL -
@@ -462,6 +471,20 @@ end_game: ; {{{
 
   LDA #$00
   STA game_state
+  RTS ; }}}
+new_apple: ; {{{
+  JSR rand
+  LDA rand_state
+  AND #%01111000
+  CLC
+  ADC #$40
+  STA apple.x
+  JSR rand
+  LDA rand_state
+  AND #%01111000
+  CLC
+  ADC #$3D
+  STA apple.y
   RTS ; }}}
 rand: ; {{{
   ; linear feedback shift register with taps at 8, 6, 5, and 4
