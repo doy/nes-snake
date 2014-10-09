@@ -41,6 +41,7 @@ direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
 frame_count     DB
 rand_state      DB
+rand_out        DB
 apple           INSTANCEOF point
 .ENDE
 ; }}}
@@ -476,52 +477,54 @@ end_game: ; {{{
   STA game_state
   RTS ; }}}
 new_apple: ; {{{
-  JSR rand
-  LDA rand_state
-  AND #%01111000
+  JSR rand4
+  LDA rand_out
+  ASL
+  ASL
+  ASL
   CLC
   ADC #$40
   STA apple.x
-  JSR rand
-  LDA rand_state
-  AND #%01111000
+  JSR rand4
+  LDA rand_out
+  ASL
+  ASL
+  ASL
   CLC
   ADC #$3D
   STA apple.y
   RTS ; }}}
-rand: ; {{{
-  ; linear feedback shift register with taps at 8, 6, 5, and 4
-  LDY rand_state
-  TYA
-  AND #%10000000
-  STA rand_state
-  TYA
-  AND #%00100000
+rand4: ; {{{
+  JSR rand1
+  LDX rand_out
+  JSR rand1
+  TXA
   ASL
+  ORA rand_out
+  TAX
+  JSR rand1
+  TXA
   ASL
-  EOR rand_state
-  STA rand_state
-  TYA
-  AND #%00010000
+  ORA rand_out
+  TAX
+  JSR rand1
+  TXA
   ASL
-  ASL
-  ASL
-  EOR rand_state
-  STA rand_state
-  TYA
-  AND #%00001000
-  ASL
-  ASL
-  ASL
-  ASL
-  EOR rand_state
-  ROL
-  STA rand_state
-  TYA
-  ASL
-  ORA rand_state
-  STA rand_state
+  ORA rand_out
+  STA rand_out
   RTS ; }}}
+rand1: ; {{{
+  ; galois linear feedback shift register with taps at 8, 6, 5, and 4
+  LDA rand_state
+  AND #$01
+  STA rand_out
+  LSR rand_state
+  LDA rand_out
+  BEQ +
+  LDA rand_state
+  EOR #%10111000
+  STA rand_state
++ RTS ; }}}
 ; }}}
 ; data {{{
 palette: ; {{{
