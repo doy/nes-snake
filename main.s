@@ -84,13 +84,14 @@ clrmem:
   LDA #$00
   STA $0000, x
   STA $0100, x
-  STA $0300, x
-  STA $0400, x
   STA $0500, x
   STA $0600, x
   STA $0700, x
   LDA #$FE
   STA $0200, x
+  LDA #$80
+  STA $0300, x
+  STA $0400, x
   INX
   BNE clrmem
 
@@ -158,51 +159,20 @@ reset_sprites_jmp:
   JMP reset_sprites
 
 draw_game:
-  LDA #$20
-  STA vram_addr_high
-  LDA #$E0
-  STA vram_addr_low
-
-  LDY #$01
-  LDA (head), y
+  LDX #$00
+  JSR draw_sprite_at_head
+  LDA head
   SEC
-  SBC #$35
-  LSR
-  LSR
-  LSR
-  TAX
-- CLC
-  LDA vram_addr_low
-  ADC #$20
-  STA vram_addr_low
-  LDA vram_addr_high
-  ADC #$00
-  STA vram_addr_high
-  DEX
-  BNE -
-
-  LDY #$00
-  LDA (head), y
-  SEC
-  SBC #$40
-  LSR
-  LSR
-  LSR
+  SBC length
+  SBC length
+  STA head
+  LDX #$20
+  JSR draw_sprite_at_head
   CLC
-  ADC #$08
-  ADC vram_addr_low
-  STA vram_addr_low
-  LDA vram_addr_high
-  ADC #$00
-  STA vram_addr_high
-
-  LDA vram_addr_high
-  STA $2006
-  LDA vram_addr_low
-  STA $2006
-
-  LDA #$00
-  STA $2007
+  LDA head
+  ADC length
+  ADC length
+  STA head
 
   LDA #$20
   STA $2006
@@ -210,21 +180,19 @@ draw_game:
   STA $2006
 
   LDA apple.y
-  STA $0204
+  STA $0200
   LDA #$07
-  STA $0205
+  STA $0201
   LDA #$00
-  STA $0206
+  STA $0202
   LDA apple.x
-  STA $0207
+  STA $0203
   JMP do_dmi
 
 reset_sprites:
   LDA #$FE
   STA $0200
   STA $0203
-  STA $0204
-  STA $0207
 
 do_dmi:
   LDA #$00
@@ -411,6 +379,11 @@ start_game: ; {{{
   LDY #$01
   STA (head), y
 
+  LDA #$01
+  STA length
+  LDA #$00
+  STA direction
+
   JSR new_apple
 
 - BIT $2002
@@ -536,6 +509,54 @@ new_apple: ; {{{
   CLC
   ADC #$3D
   STA apple.y
+  RTS ; }}}
+draw_sprite_at_head: ; {{{
+  LDA #$20
+  STA vram_addr_high
+  LDA #$E0
+  STA vram_addr_low
+
+  LDY #$01
+  LDA (head), y
+  SEC
+  SBC #$35
+  LSR
+  LSR
+  LSR
+  TAY
+- CLC
+  LDA vram_addr_low
+  ADC #$20
+  STA vram_addr_low
+  LDA vram_addr_high
+  ADC #$00
+  STA vram_addr_high
+  DEY
+  BNE -
+
+  LDY #$00
+  LDA (head), y
+  SEC
+  SBC #$40
+  LSR
+  LSR
+  LSR
+  CLC
+  ADC #$08
+  ADC vram_addr_low
+  STA vram_addr_low
+  LDA vram_addr_high
+  ADC #$00
+  STA vram_addr_high
+
+  LDA vram_addr_high
+  STA $2006
+  LDA vram_addr_low
+  STA $2006
+
+  TXA
+  STA $2007
+
   RTS ; }}}
 rand4: ; {{{
   JSR rand1
