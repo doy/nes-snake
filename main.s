@@ -40,6 +40,7 @@ length          DB
 direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
 frame_count     DB
+rand_state      DB
 .ENDE
 ; }}}
 ; }}}
@@ -188,6 +189,10 @@ end_nmi:
 ; }}}
 ; subroutines {{{
 start_screen_loop: ; {{{
+  LDX rand_state
+  INX
+  STX rand_state
+
 handle_start:
   LDA buttons_pressed
   AND #%00010000
@@ -421,6 +426,39 @@ end_game: ; {{{
 
   LDA #$00
   STA game_state
+  RTS ; }}}
+rand: ; {{{
+  ; linear feedback shift register with taps at 8, 6, 5, and 4
+  LDY rand_state
+  TYA
+  AND #%10000000
+  STA rand_state
+  TYA
+  AND #%00100000
+  ASL
+  ASL
+  EOR rand_state
+  STA rand_state
+  TYA
+  AND #%00010000
+  ASL
+  ASL
+  ASL
+  EOR rand_state
+  STA rand_state
+  TYA
+  AND #%00001000
+  ASL
+  ASL
+  ASL
+  ASL
+  EOR rand_state
+  ROL
+  STA rand_state
+  TYA
+  ASL
+  ORA rand_state
+  STA rand_state
   RTS ; }}}
 ; }}}
 ; data {{{
