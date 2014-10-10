@@ -46,6 +46,8 @@ rand_out        DB
 apple           INSTANCEOF point
 vram_addr_low   DB
 vram_addr_high  DB
+body_test_x     DB
+body_test_y     DB
 .ENDE
 ; }}}
 ; }}}
@@ -276,9 +278,10 @@ handle_frame:
   INX
   STX frame_count
   CPX frame_skip
-  BMI end_game_loop
+  BPL +
+  JMP end_game_loop
 
-  LDA #$00
++ LDA #$00
   STA frame_count
 
 set_offset:
@@ -330,6 +333,18 @@ check_collisions
   BCC collision
   CPY #$BD
   BCS collision
+
+  STX body_test_x
+  STY body_test_y
+  DEC head_x
+  DEC head_y
+  JSR test_body_collision
+  INC head_x
+  INC head_y
+  LDX body_test_x
+  LDY body_test_y
+  CMP #$01
+  BEQ collision
 
   CPX apple.x
   BEQ maybe_eat_apple
@@ -573,6 +588,59 @@ draw_sprite_at_head: ; {{{
   TXA
   STA $2007
 
+  RTS ; }}}
+test_body_collision ; {{{
+  LDA head_x
+  PHA
+  LDA head_y
+  PHA
+
+  LDA head_x
+  SEC
+  SBC length
+  TAX
+  INX
+  TXA
+  STA head_x
+
+  LDA head_y
+  SEC
+  SBC length
+  TAX
+  INX
+  TXA
+  STA head_y
+
+  LDY length
+
+- DEY
+  LDA (head_x), y
+  CMP body_test_x
+  BEQ maybe_collision_found
+  CPY #$00
+  BNE -
+  JMP collision_not_found
+
+maybe_collision_found:
+  LDA (head_y), y
+  CMP body_test_y
+  BEQ collision_found
+  CPY #$00
+  BNE -
+  JMP collision_not_found
+
+collision_found:
+  LDX #$01
+  JMP test_body_collision_end
+collision_not_found:
+  LDX #$00
+
+test_body_collision_end:
+  PLA
+  STA head_y
+  PLA
+  STA head_x
+  TXA
   RTS ; }}}
 rand4: ; {{{
   JSR rand1
