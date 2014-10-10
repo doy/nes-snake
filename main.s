@@ -35,7 +35,8 @@ SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
 buttons_pressed DB
 sleeping        DB
 game_state      DB ; 0: menu, 1: playing, 2: redrawing
-head            DW
+head_x          DW
+head_y          DW
 length          DB
 direction       DB ; 0: up, 1: down, 2: left, 3: right
 frame_skip      DB
@@ -91,6 +92,7 @@ clrmem:
   STA $0200, x
   LDA #$80
   STA $0300, x
+  LDA #$7D
   STA $0400, x
   INX
   BNE clrmem
@@ -98,7 +100,10 @@ clrmem:
   ; initialize variables in ram
   LDA #$03
   LDX #$01
-  STA head, x
+  STA head_x, x
+  LDA #$04
+  LDX #$01
+  STA head_y, x
   LDA #35
   STA frame_skip
 
@@ -161,26 +166,24 @@ reset_sprites_jmp:
 draw_game:
   LDX #$00
   JSR draw_sprite_at_head
-  LDA head
+  LDA head_x
   SEC
   SBC length
+  STA head_x
+  LDA head_y
+  SEC
   SBC length
-  STA head
-  LDX #$01
-  LDA head, x
-  SBC #$00
-  STA head, x
+  STA head_y
   LDX #$20
   JSR draw_sprite_at_head
+  LDA head_x
   CLC
-  LDA head
   ADC length
+  STA head_x
+  LDA head_y
+  CLC
   ADC length
-  STA head
-  LDX #$01
-  LDA head, x
-  ADC #$00
-  STA head, x
+  STA head_y
 
   LDA #$20
   STA $2006
@@ -286,35 +289,36 @@ set_offset:
   LDX #$08
 
 set_axis:
-  LDY #$01
+  LDY #$00
   LDA direction
   AND #%00000010       ; high bit determines which axis to change
-  BEQ apply_direction
-  LDY #$00
+  BNE apply_direction_horiz
 
-apply_direction:
+apply_direction_vert:
   TXA
   CLC
-  ADC (head), y        ; head.x offset by 1 is head.y
-  INC head
-  INC head
-  STA (head), y
-  DEC head
-  DEC head
-  TYA
-  EOR #$01
-  TAY
-  LDA (head), y
-  INC head
-  INC head
-  STA (head), y
+  ADC (head_y), y
+  INC head_y
+  STA (head_y), y
+  LDA (head_x), y
+  INC head_x
+  STA (head_x), y
+  JMP check_collisions
+
+apply_direction_horiz:
+  TXA
+  CLC
+  ADC (head_x), y
+  INC head_x
+  STA (head_x), y
+  LDA (head_y), y
+  INC head_y
+  STA (head_y), y
 
 check_collisions
-  LDY #$00
-  LDA (head), y
+  LDA (head_x), y
   TAX
-  LDY #$01
-  LDA (head), y
+  LDA (head_y), y
   TAY
 
   CPX #$40
@@ -385,12 +389,11 @@ start_game: ; {{{
   LDA #$02
   STA game_state
 
-  LDA #$80
   LDY #$00
-  STA (head), y
+  LDA #$80
+  STA (head_x), y
   LDA #$7D
-  LDY #$01
-  STA (head), y
+  STA (head_y), y
 
   LDA #$01
   STA length
@@ -529,8 +532,8 @@ draw_sprite_at_head: ; {{{
   LDA #$E0
   STA vram_addr_low
 
-  LDY #$01
-  LDA (head), y
+  LDY #$00
+  LDA (head_y), y
   SEC
   SBC #$35
   LSR
@@ -548,7 +551,7 @@ draw_sprite_at_head: ; {{{
   BNE -
 
   LDY #$00
-  LDA (head), y
+  LDA (head_x), y
   SEC
   SBC #$40
   LSR
