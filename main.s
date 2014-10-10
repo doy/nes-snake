@@ -540,6 +540,14 @@ new_apple: ; {{{
   CLC
   ADC #$3D
   STA apple.y
+
+  LDA apple.x
+  STA body_test_x
+  LDA apple.y
+  STA body_test_y
+  JSR test_body_collision
+  CMP #$01
+  BEQ new_apple
   RTS ; }}}
 draw_sprite_at_head: ; {{{
   LDA #$20
