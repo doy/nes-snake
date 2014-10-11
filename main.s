@@ -109,6 +109,11 @@ clrmem:
   LDA #20
   STA frame_skip
 
+  LDA #$07
+  STA $0201
+  LDA #$00
+  STA $0202
+
   ; Second wait for vblank, PPU is ready after this
 - BIT $2002
   BPL -
@@ -158,12 +163,12 @@ NMI:
   PHA
 
   LDA game_state
-  BEQ reset_sprites_jmp
+  BEQ do_dma_jmp
   CMP #$01
   BEQ draw_game
   JMP end_nmi
-reset_sprites_jmp:
-  JMP reset_sprites
+do_dma_jmp:
+  JMP do_dma
 
 draw_game:
   LDX #$00
@@ -192,20 +197,7 @@ draw_game:
   LDA #$00
   STA $2006
 
-  LDA apple.y
-  STA $0200
-  LDA #$07
-  STA $0201
-  LDA #$00
-  STA $0202
-  LDA apple.x
-  STA $0203
   JMP do_dma
-
-reset_sprites:
-  LDA #$FE
-  STA $0200
-  STA $0203
 
 do_dma:
   LDA #$00
@@ -479,6 +471,10 @@ end_game: ; {{{
   LDA #$02
   STA game_state
 
+  LDA #$FE
+  STA $0200
+  STA $0203
+
 - BIT $2002
   BPL -
 
@@ -548,6 +544,12 @@ new_apple: ; {{{
   JSR test_body_collision
   CMP #$01
   BEQ new_apple
+
+  LDA apple.y
+  STA $0200
+  LDA apple.x
+  STA $0203
+
   RTS ; }}}
 draw_sprite_at_head: ; {{{
   LDA #$20
