@@ -107,8 +107,6 @@ clrmem:
   LDA #$04
   LDX #$01
   STA head_y, x
-  LDA #20
-  STA frame_skip
 
   LDA #$07
   STA $0201
@@ -419,6 +417,9 @@ start_game: ; {{{
   STA length
   LDA #$00
   STA direction
+
+  LDA #20
+  STA frame_skip
 
   JSR new_apple
 
