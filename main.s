@@ -33,8 +33,9 @@ SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
 
 .ENUM $0000
 buttons_pressed DB
+prev_buttons    DB
 sleeping        DB
-game_state      DB ; 0: menu, 1: playing, 2: redrawing
+game_state      DB ; 0: menu, 1: playing, 2: redrawing, 3: paused
 head_x          DW
 head_y          DW
 length          DB
@@ -272,9 +273,34 @@ handle_right:
   LDA buttons_pressed
   AND #%00000001
   CMP #$00
-  BEQ handle_frame
+  BEQ handle_pause
   LDA #$03
   STA direction
+
+handle_pause:
+  LDA buttons_pressed
+  EOR prev_buttons
+  AND #%00010000
+  CMP #$00
+  BEQ check_pause
+  LDA buttons_pressed
+  AND #%00010000
+  CMP #$00
+  BEQ check_pause
+  LDA game_state
+  CMP #$01
+  BEQ +
+  LDA #$01
+  STA game_state
+  JMP check_pause
++ LDA #$03
+  STA game_state
+
+check_pause:
+  LDA game_state
+  CMP #$03
+  BNE handle_frame
+  JMP end_game_loop
 
 handle_frame:
   LDX frame_count
@@ -400,6 +426,8 @@ draw_sprites:
 end_game_loop:
   RTS ; }}}
 read_controller1: ; {{{
+  LDA buttons_pressed
+  STA prev_buttons
   ; latch
   LDA #$01
   STA $4016
