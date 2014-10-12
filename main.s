@@ -185,6 +185,11 @@ NMI:
   BEQ end_nmi
 
 draw_game:
+  LDA #$00
+  STA $2003
+  LDA #$02
+  STA $4014
+
 - LDX num_draws
   BEQ done_drawing
   DEX
@@ -210,12 +215,6 @@ done_drawing:
   STA $2006
   LDA #$00
   STA $2006
-
-do_dma:
-  LDA #$00
-  STA $2003
-  LDA #$02
-  STA $4014
 
 end_nmi:
   LDA #$00
