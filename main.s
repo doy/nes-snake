@@ -114,24 +114,10 @@ clrmem:
   LDA #$00
   STA $0202
 
-  LDA #$2D
-  STA $0204
   LDA #$00
   STA $0206
-  LDA #$40
-  STA $0207
-  LDA #$2D
-  STA $0208
-  LDA #$00
   STA $020A
-  LDA #$48
-  STA $020B
-  LDA #$2D
-  STA $020C
-  LDA #$00
   STA $020E
-  LDA #$50
-  STA $020F
 
   ; Second wait for vblank, PPU is ready after this
 - BIT $2002
@@ -454,6 +440,17 @@ start_game: ; {{{
   LDA #$02
   STA game_state
 
+  LDA #$2D
+  STA $0204
+  STA $0208
+  STA $020C
+  LDA #$40
+  STA $0207
+  ADC #$08
+  STA $020B
+  ADC #$08
+  STA $020F
+
   LDY #$00
   LDA #$80
   STA (head_x), y
@@ -537,6 +534,12 @@ end_game: ; {{{
   LDA #$FE
   STA $0200
   STA $0203
+  STA $0204
+  STA $0207
+  STA $0208
+  STA $020B
+  STA $020C
+  STA $020F
 
 - BIT $2002
   BPL -
