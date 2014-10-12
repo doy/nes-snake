@@ -163,12 +163,10 @@ NMI:
   PHA
 
   LDA game_state
-  BEQ do_dma_jmp
+  BEQ do_dma
   CMP #$01
   BEQ draw_game
   JMP end_nmi
-do_dma_jmp:
-  JMP do_dma
 
 draw_game:
   LDX #$00
