@@ -48,6 +48,7 @@ vram_addr_low   DB
 vram_addr_high  DB
 body_test_x     DB
 body_test_y     DB
+num_draws       DB
 .ENDE
 ; }}}
 ; }}}
@@ -169,33 +170,32 @@ NMI:
   JMP end_nmi
 
 draw_game:
-  LDX #$00
-  JSR draw_sprite_at_head
-  LDA head_x
-  SEC
-  SBC length
-  STA head_x
-  LDA head_y
-  SEC
-  SBC length
-  STA head_y
-  LDX #$20
-  JSR draw_sprite_at_head
-  LDA head_x
+- LDA #$00
   CLC
-  ADC length
-  STA head_x
-  LDA head_y
-  CLC
-  ADC length
-  STA head_y
+  ADC num_draws
+  ADC num_draws
+  ADC num_draws
+  SEC
+  SBC #$03
+  TAX
+  LDA $0700, x
+  STA $2006
+  INX
+  LDA $0700, x
+  STA $2006
+  INX
+  LDA $0700, x
+  STA $2007
+  LDX num_draws
+  DEX
+  STX num_draws
+  CPX #$00
+  BNE -
 
   LDA #$20
   STA $2006
   LDA #$00
   STA $2006
-
-  JMP do_dma
 
 do_dma:
   LDA #$00
@@ -366,6 +366,26 @@ eat_apple:
 + JSR new_apple
 
 end_game_loop:
+  LDX #$00
+  JSR draw_sprite_at_head
+  LDA head_x
+  SEC
+  SBC length
+  STA head_x
+  LDA head_y
+  SEC
+  SBC length
+  STA head_y
+  LDX #$20
+  JSR draw_sprite_at_head
+  LDA head_x
+  CLC
+  ADC length
+  STA head_x
+  LDA head_y
+  CLC
+  ADC length
+  STA head_y
   RTS ; }}}
 read_controller1: ; {{{
   ; latch
@@ -588,13 +608,25 @@ draw_sprite_at_head: ; {{{
   ADC #$00
   STA vram_addr_high
 
-  LDA vram_addr_high
-  STA $2006
-  LDA vram_addr_low
-  STA $2006
-
   TXA
-  STA $2007
+  TAY
+  LDA #$00
+  ADC num_draws
+  ADC num_draws
+  ADC num_draws
+  TAX
+  LDA vram_addr_high
+  STA $0700, x
+  INX
+  LDA vram_addr_low
+  STA $0700, x
+  INX
+  TYA
+  STA $0700, x
+
+  LDX num_draws
+  INX
+  STX num_draws
 
   RTS ; }}}
 test_body_collision ; {{{
