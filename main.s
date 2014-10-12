@@ -164,19 +164,19 @@ NMI:
   PHA
 
   LDA game_state
-  BEQ do_dma
-  CMP #$01
-  BEQ draw_game
-  JMP end_nmi
+  CMP #$02
+  BEQ end_nmi
 
 draw_game:
-- LDA #$00
+- LDX num_draws
+  BEQ done_drawing
+  DEX
+  STX num_draws
+  LDA #$00
   CLC
   ADC num_draws
   ADC num_draws
   ADC num_draws
-  SEC
-  SBC #$03
   TAX
   LDA $0700, x
   STA $2006
@@ -186,12 +186,9 @@ draw_game:
   INX
   LDA $0700, x
   STA $2007
-  LDX num_draws
-  DEX
-  STX num_draws
-  CPX #$00
-  BNE -
+  JMP -
 
+done_drawing:
   LDA #$20
   STA $2006
   LDA #$00
@@ -269,7 +266,7 @@ handle_frame:
   STX frame_count
   CPX frame_skip
   BPL +
-  JMP end_game_loop
+  JMP draw_sprites
 
 + LDA #$00
   STA frame_count
@@ -339,7 +336,7 @@ check_collisions
   CPX apple.x
   BEQ maybe_eat_apple
 
-  JMP end_game_loop
+  JMP draw_sprites
 
 collision:
   JSR end_game
@@ -350,7 +347,7 @@ maybe_eat_apple:
   CPY apple.y
   BEQ eat_apple
 
-  JMP end_game_loop
+  JMP draw_sprites
 
 eat_apple:
   LDX length
@@ -365,7 +362,7 @@ eat_apple:
   STA frame_skip
 + JSR new_apple
 
-end_game_loop:
+draw_sprites:
   LDX #$00
   JSR draw_sprite_at_head
   LDA head_x
@@ -386,6 +383,8 @@ end_game_loop:
   CLC
   ADC length
   STA head_y
+
+end_game_loop:
   RTS ; }}}
 read_controller1: ; {{{
   ; latch
