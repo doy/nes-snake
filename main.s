@@ -352,15 +352,11 @@ maybe_eat_apple:
 eat_apple:
   LDX length
   INX
-  TXA
   BEQ collision ; for now - this is the win condition
   STX length
-  AND #$07
-  BNE +
-  LDX length
   LDA speed.w, x
   STA frame_skip
-+ JSR new_apple
+  JSR new_apple
 
 draw_sprites:
   LDX #$00
