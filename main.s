@@ -113,6 +113,25 @@ clrmem:
   LDA #$00
   STA $0202
 
+  LDA #$2D
+  STA $0204
+  LDA #$00
+  STA $0206
+  LDA #$40
+  STA $0207
+  LDA #$2D
+  STA $0208
+  LDA #$00
+  STA $020A
+  LDA #$48
+  STA $020B
+  LDA #$2D
+  STA $020C
+  LDA #$00
+  STA $020E
+  LDA #$50
+  STA $020F
+
   ; Second wait for vblank, PPU is ready after this
 - BIT $2002
   BPL -
@@ -355,6 +374,7 @@ eat_apple:
   LDA speed.w, x
   STA frame_skip
   JSR new_apple
+  JSR draw_score
 
 draw_sprites:
   LDX #$00
@@ -422,6 +442,8 @@ start_game: ; {{{
   STA frame_skip
 
   JSR new_apple
+
+  JSR draw_score
 
 - BIT $2002
   BPL -
@@ -624,6 +646,51 @@ draw_sprite_at_head: ; {{{
   INX
   STX num_draws
 
+  RTS ; }}}
+draw_score: ; {{{
+  LDA #$30
+  STA $0205
+  STA $0209
+  STA $020D
+
+  LDA length
+hundreds:
+  CMP #100
+  BMI tens
+  SEC
+  SBC #100
+  LDX $0205
+  INX
+  TAY
+  TXA
+  STA $0205
+  TYA
+  JMP hundreds
+tens:
+  CMP #10
+  BMI ones
+  SEC
+  SBC #10
+  LDX $0209
+  INX
+  TAY
+  TXA
+  STA $0209
+  TYA
+  JMP tens
+ones:
+  CMP #1
+  BMI end_draw_score
+  SEC
+  SBC #1
+  LDX $020D
+  INX
+  TAY
+  TXA
+  STA $020D
+  TYA
+  JMP ones
+end_draw_score:
   RTS ; }}}
 test_body_collision ; {{{
   LDA head_x
