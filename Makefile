@@ -21,7 +21,7 @@ $(NAME).rom: $(OBJS) linkfile
 main.o: sprites.chr
 
 run: $(NAME).nes
-	fceux $(NAME).nes
+	nestopia $(NAME).nes
 
 clean:
 	rm -f $(OBJS) $(NAME).rom $(NAME).nes
