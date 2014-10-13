@@ -31,7 +31,7 @@ SLOTSIZE     $2000
 SLOT 1       $0000 ; location doesn't matter, CHR data isn't in main memory
 .ENDME
 
-.ENUM $0000
+.ENUM $00
 buttons_pressed DB
 prev_buttons    DB
 sleeping        DB
